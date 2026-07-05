@@ -1,0 +1,18 @@
+{
+ "kind": "skew",
+ "heads": [
+  0,
+  1
+ ],
+ "arm": "placebo_cross",
+ "scheme": "rope",
+ "seed": 2,
+ "tag": "rope_placebo_cross_lam0.0_seed2",
+ "formation_step": 900,
+ "wall_s": 229.9,
+ "final_ce_pred": 0.22943343222141266,
+ "final_prev": 0.8354825377464294,
+ "final_ind": 0.8915591239929199,
+ "steps": 6000,
+ "sol_sign": null
+}

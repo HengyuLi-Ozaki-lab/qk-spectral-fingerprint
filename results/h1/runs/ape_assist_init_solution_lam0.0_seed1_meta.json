@@ -1,0 +1,18 @@
+{
+ "kind": "pos_prev",
+ "heads": [
+  0,
+  1
+ ],
+ "arm": "assist_init_solution",
+ "scheme": "ape",
+ "seed": 1,
+ "tag": "ape_assist_init_solution_lam0.0_seed1",
+ "formation_step": 400,
+ "wall_s": 198.7,
+ "final_ce_pred": 0.22395668923854828,
+ "final_prev": 0.8698263764381409,
+ "final_ind": 0.9005436301231384,
+ "steps": 6000,
+ "sol_sign": 1
+}

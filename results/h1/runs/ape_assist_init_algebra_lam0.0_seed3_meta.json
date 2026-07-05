@@ -1,0 +1,18 @@
+{
+ "kind": "skew",
+ "heads": [
+  0,
+  1
+ ],
+ "arm": "assist_init_algebra",
+ "scheme": "ape",
+ "seed": 3,
+ "tag": "ape_assist_init_algebra_lam0.0_seed3",
+ "formation_step": 600,
+ "wall_s": 214.5,
+ "final_ce_pred": 0.23262900114059448,
+ "final_prev": 0.7830877304077148,
+ "final_ind": 0.8988034129142761,
+ "steps": 6000,
+ "sol_sign": null
+}

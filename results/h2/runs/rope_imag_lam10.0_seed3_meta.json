@@ -1,0 +1,8 @@
+{
+ "tag": "rope_imag_lam10.0_seed3",
+ "formation_step": 1000,
+ "wall_s": 244.5,
+ "final_ce_pred": 0.2281794399023056,
+ "final_prev": 0.84751957654953,
+ "final_ind": 0.896943986415863
+}

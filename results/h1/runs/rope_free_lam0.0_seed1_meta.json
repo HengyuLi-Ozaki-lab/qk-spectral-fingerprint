@@ -1,0 +1,10 @@
+{
+ "tag": "rope_free_lam0.0_seed1",
+ "formation_step": 900,
+ "wall_s": 233.9,
+ "final_ce_pred": 0.22282004356384277,
+ "final_prev": 0.8375944495201111,
+ "final_ind": 0.8839598298072815,
+ "steps": 6000,
+ "sol_sign": null
+}

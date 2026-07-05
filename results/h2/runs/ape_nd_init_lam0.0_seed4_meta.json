@@ -1,0 +1,16 @@
+{
+ "kind": "sym",
+ "heads": [
+  0,
+  1
+ ],
+ "arm": "nd_init",
+ "scheme": "ape",
+ "seed": 4,
+ "tag": "ape_nd_init_lam0.0_seed4",
+ "formation_step": 600,
+ "wall_s": 206.9,
+ "final_ce_pred": 0.23307524621486664,
+ "final_prev": 0.7524643540382385,
+ "final_ind": 0.8978219032287598
+}

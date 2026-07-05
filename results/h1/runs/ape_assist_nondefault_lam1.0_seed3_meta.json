@@ -1,0 +1,20 @@
+{
+ "kind": "sym",
+ "heads": [
+  0,
+  1
+ ],
+ "arm": "assist_nondefault",
+ "scheme": "ape",
+ "seed": 3,
+ "tag": "ape_assist_nondefault_lam1.0_seed3",
+ "formation_step": 700,
+ "wall_s": 223.5,
+ "final_ce_pred": 0.22166530787944794,
+ "final_prev": 0.9192754626274109,
+ "final_ind": 0.9001901149749756,
+ "steps": 6000,
+ "wd": 0.01,
+ "bs": 64,
+ "sol_sign": null
+}

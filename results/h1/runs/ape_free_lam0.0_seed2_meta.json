@@ -1,0 +1,10 @@
+{
+ "tag": "ape_free_lam0.0_seed2",
+ "formation_step": 600,
+ "wall_s": 220.9,
+ "final_ce_pred": 0.22274087369441986,
+ "final_prev": 0.8525102734565735,
+ "final_ind": 0.9012392163276672,
+ "steps": 6000,
+ "sol_sign": null
+}

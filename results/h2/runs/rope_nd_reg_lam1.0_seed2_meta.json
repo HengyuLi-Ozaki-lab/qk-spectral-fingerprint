@@ -1,0 +1,8 @@
+{
+ "tag": "rope_nd_reg_lam1.0_seed2",
+ "formation_step": 1000,
+ "wall_s": 240.2,
+ "final_ce_pred": 0.22795210778713226,
+ "final_prev": 0.8850572109222412,
+ "final_ind": 0.8846445083618164
+}

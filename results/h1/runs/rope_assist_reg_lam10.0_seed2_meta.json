@@ -1,0 +1,10 @@
+{
+ "tag": "rope_assist_reg_lam10.0_seed2",
+ "formation_step": 1500,
+ "wall_s": 247.9,
+ "final_ce_pred": 0.22518502175807953,
+ "final_prev": 0.9098050594329834,
+ "final_ind": 0.8899380564689636,
+ "steps": 6000,
+ "sol_sign": null
+}

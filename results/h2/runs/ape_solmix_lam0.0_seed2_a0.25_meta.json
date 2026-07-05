@@ -1,0 +1,18 @@
+{
+ "h0": {
+  "alpha": 0.25
+ },
+ "h1": {
+  "alpha": 0.25
+ },
+ "arm": "solmix",
+ "scheme": "ape",
+ "seed": 2,
+ "tag": "ape_solmix_lam0.0_seed2_a0.25",
+ "formation_step": 600,
+ "wall_s": 207.5,
+ "final_ce_pred": 0.23051226139068604,
+ "final_prev": 0.7986498475074768,
+ "final_ind": 0.8987555503845215,
+ "alpha": 0.25
+}

@@ -1,0 +1,19 @@
+{
+ "h0": {
+  "kind": "ortho"
+ },
+ "h1": {
+  "kind": "ortho"
+ },
+ "arm": "placebo_random",
+ "scheme": "ape",
+ "seed": 0,
+ "tag": "ape_placebo_random_lam0.0_seed0",
+ "formation_step": 600,
+ "wall_s": 175.8,
+ "final_ce_pred": 0.2291610836982727,
+ "final_prev": 0.8194568157196045,
+ "final_ind": 0.8994116187095642,
+ "steps": 6000,
+ "sol_sign": null
+}

@@ -1,0 +1,10 @@
+{
+ "tag": "ape_assist_reg_lam10.0_seed2",
+ "formation_step": 2300,
+ "wall_s": 218.2,
+ "final_ce_pred": 0.4724404513835907,
+ "final_prev": 0.23401878774166107,
+ "final_ind": 0.5811272859573364,
+ "steps": 6000,
+ "sol_sign": null
+}
