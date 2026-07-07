@@ -166,21 +166,27 @@ the scaffold, pointing at a representational/gradient-shaping mechanism rather t
 still flag as open rather than adjudicated.
 \textbf{Caveats}: $n{=}5$; 2-layer attention-only models on one synthetic task; APE formation is quantized at the
 $100$-step eval grid (so the APE algebra-init null means ``no effect at $100$-step resolution,'' not a measured
-zero). These results are an existence demonstration of steerability at toy scale, not a scaling law; the
-program's next milestone tests assisted selection at $\ge$160M-parameter pretraining through the formation window.
+zero). These results are an existence demonstration of steerability at toy scale, not a scaling law. A
+160M-parameter pretraining pilot (through the induction formation window) tests transfer and returns a mixed,
+honestly negative-leaning early picture: the ban-induced implementation selection reproduces (the previous-token
+head re-forms cos-only at 160M) with a formation-time cost of the same sign, but the solution-init
+\emph{acceleration} does \emph{not} transfer (assist$-$free $\le0$ in both seeds, against the $-44\%$
+frozen-scaffold speedup at toy scale), and weak-regularizer selection remains untested at scale. Formation at 160M
+appears data- and optimization-limited rather than search-limited, the regime in which initialization would help.
 
 \section{Takeaway}
-The spectral economy of attention is not only measurable and priced (companion paper) but \emph{steerable}: weak,
-ban-free assistance selects which functionally-equivalent spectral implementation a circuit adopts, at a cost far
-below banning the alternative, and solution-specific initialization accelerates circuit formation outright. If this
-holds at scale, ``which algorithm a circuit implements'' becomes a controllable design choice --- relevant to
-interpretability-by-construction and to installing chosen (e.g., more auditable) implementations. Steering is
-also \emph{auditable} where rerouting is not hideable: companion propagator-level work finds that implementations
-which vanish from the weight fingerprint (\rif$\,{\approx}0.003$ after a phase ban) remain fully visible as
-transient-reserve excess on the attention propagator ($31/31$ prev-carrying heads positive across all
-implementations) --- the weight battery reads \emph{implementation}, the propagator battery reads
-\emph{function}, so a steered or rerouted circuit cannot evade both. We release the harness, seeds, and per-run
-tables.
+The spectral economy of attention is not only measurable and priced (companion paper) but \emph{steerable} at toy
+scale: weak, ban-free assistance selects which functionally-equivalent spectral implementation a circuit adopts, at
+a cost far below banning the alternative, while solution-specific initialization accelerates circuit formation
+(toy scale only; the acceleration does not survive at 160M, see the caveats above). To the extent selection
+transfers --- our 160M pilot finds the ban-induced selection reproduces --- ``which algorithm a circuit
+implements'' becomes a partly controllable design choice, relevant to interpretability-by-construction and to
+installing a chosen implementation class. The one knob that transfers happens to install a
+\emph{weight-audit-evading} implementation (cos-only, \rif$\,{\approx}0.003$); it is nonetheless not hideable,
+because companion propagator-level work finds that implementations which vanish from the weight fingerprint remain
+fully visible as transient-reserve excess on the attention propagator ($31/31$ prev-carrying heads positive across
+all implementations). The weight battery reads \emph{implementation}, the propagator battery reads \emph{function},
+so a steered or rerouted circuit cannot evade both. We release the harness, seeds, and per-run tables.
 
 \paragraph{Reproducibility \& pre-registration.} Harness \texttt{src/\{h1\_hinge,h1\_analyze,h2\_m21\}.py}
 (extends the companion's \texttt{p10} additively; free arms bit-exact); predictions P-A1/P-A2/P-A3 and the
