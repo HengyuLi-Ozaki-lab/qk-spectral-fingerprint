@@ -44,8 +44,9 @@ How Positional Schemes Set the Default Spectral Algebra of Attention}}
 
 \begin{abstract}
 The attention score of a head is a bilinear form $\mathrm{score}(i,j)=x_i^\top \M x_j$ in the learned QK operator
-$\M = \Wq^\top \Wk$. Because \M is generally non-symmetric it carries a complex eigenspectrum --- but what kind of
-fact about a head does that spectrum encode? We give a three-level answer for previous-token/induction circuits.
+$\M = \Wq^\top \Wk$. Because \M is generally non-symmetric --- hence non-normal --- it carries a complex
+eigenspectrum and non-orthogonal eigenvectors, the setting where non-Hermitian and random-matrix tools apply. But
+what kind of fact about a head does that spectrum encode? We give a three-level answer for previous-token/induction circuits.
 \textbf{Statically}, across seven pretrained models spanning three positional schemes, the strongest previous-token
 heads are spectrally \emph{rotational} under \Rope and \emph{non-rotational, content-like} wherever position enters
 outside QK (learned-absolute and ALiBi): the model-level separation is perfect at every top-$k$ we test (exact
