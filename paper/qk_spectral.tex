@@ -43,26 +43,24 @@ How Positional Schemes Set the Default Spectral Algebra of Attention}}
 \maketitle
 
 \begin{abstract}
-The attention score of a head is a bilinear form $\mathrm{score}(i,j)=x_i^\top \M x_j$ in the learned QK operator
-$\M = \Wq^\top \Wk$. Because \M is generally non-symmetric --- hence non-normal --- it carries a complex
-eigenspectrum and non-orthogonal eigenvectors, the setting where non-Hermitian and random-matrix tools apply. But
-what kind of fact about a head does that spectrum encode? We give a three-level answer for previous-token/induction circuits.
-\textbf{Statically}, across seven pretrained models spanning three positional schemes, the strongest previous-token
-heads are spectrally \emph{rotational} under \Rope and \emph{non-rotational, content-like} wherever position enters
-outside QK (learned-absolute and ALiBi): the model-level separation is perfect at every top-$k$ we test (exact
-permutation $p{=}0.029$; head-level $p{=}2.5{\times}10^{-5}$, descriptive), and zeroing the per-frequency \Rope
-phase $\mathrm{Im}(\Mt)$ destroys induction precisely on a pre-identified previous-token head in each of three
-\Rope models. \textbf{Dynamically}, over public Pythia checkpoints every head is born at the random-matrix
-(Ginibre) null; the rotational signature locks in within the same checkpoint window as the behavior --- we find no
-earlier predictive signature --- and the population-median suppression that produces the final profile follows
-circuit formation: the profile is a consolidated fingerprint of the algorithm, not its precursor.
-\textbf{Causally, at toy scale}, no spectral channel is necessary: in controlled 2-layer training runs, constrained
-training reroutes around every ban we imposed with final capability intact, but at a significant formation delay
-(all four pre-registered contrasts $q_{\mathrm{BH}}{\le}0.016$), and the cost structure exposes each scheme's
-\emph{default} --- forcing symmetry costs learned-absolute models $2.9\times$, while a \Rope head with a fully
-symmetric static \M still routes directionally through the phase channel, a dissociation impossible under absolute
-positions. Together, in the settings analyzed: \textbf{the positional scheme sets the default spectral algebra of
-attention's solutions} --- a fingerprint sculpted after function, a default rather than a hard constraint.
+The pre-softmax score of an attention head is a bilinear form $\mathrm{score}(i,j)=x_i^\top \M x_j$ in a learned
+operator $\M = \Wq^\top \Wk$. Because \M is generally non-symmetric, hence non-normal, it has a complex
+eigenspectrum and non-orthogonal eigenvectors, the regime where non-Hermitian and random-matrix tools apply. We ask
+what this spectrum encodes, at three levels for previous-token and induction circuits. Statically, across seven
+pretrained models spanning three positional schemes, the strongest previous-token heads are spectrally rotational
+under \Rope and non-rotational, or content-like, where position enters outside QK (learned-absolute and ALiBi); the
+model-level separation is perfect at every top-$k$ examined (exact permutation $p{=}0.029$), and zeroing the
+per-frequency \Rope phase $\mathrm{Im}(\Mt)$ eliminates induction on a pre-identified previous-token head in all
+three \Rope models. Dynamically, over public Pythia checkpoints every head originates at the random-matrix
+(Ginibre) null; the rotational signature emerges with the behavior, not before it, and the population-median
+suppression that yields the final profile follows circuit formation, so the profile is a consolidated fingerprint,
+not a precursor. Causally, and at toy scale, no spectral channel is necessary: constrained two-layer training
+reroutes around every ban with capability intact, albeit at a significant formation delay (four pre-registered
+contrasts, $q_{\mathrm{BH}}{\le}0.016$). The cost structure exposes each scheme's default: imposing symmetry slows
+learned-absolute models by a factor of $2.9$, whereas a \Rope head with a fully symmetric static \M still routes
+directionally via the phase channel, impossible under absolute positions. Within the settings examined, the
+positional scheme sets the default spectral algebra of an attention head's solution: a fingerprint sculpted after
+function, not a hard constraint upon it.
 \end{abstract}
 
 \section{Introduction}
