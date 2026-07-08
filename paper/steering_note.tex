@@ -167,20 +167,29 @@ still flag as open rather than adjudicated.
 \textbf{Caveats}: $n{=}5$; 2-layer attention-only models on one synthetic task; APE formation is quantized at the
 $100$-step eval grid (so the APE algebra-init null means ``no effect at $100$-step resolution,'' not a measured
 zero). These results are an existence demonstration of steerability at toy scale, not a scaling law. A
-160M-parameter pretraining pilot (through the induction formation window) tests transfer and returns a mixed,
-honestly negative-leaning early picture: the ban-induced implementation selection reproduces (the previous-token
-head re-forms cos-only at 160M) with a formation-time cost of the same sign, but the solution-init
-\emph{acceleration} does \emph{not} transfer (assist$-$free $\le0$ in both seeds, against the $-44\%$
-frozen-scaffold speedup at toy scale), and weak-regularizer selection remains untested at scale. Formation at 160M
-appears data- and optimization-limited rather than search-limited, the regime in which initialization would help.
+160M-parameter pretraining pilot (Pythia-160M, two seeds, through the induction formation window) tests transfer,
+and the ban/selection side transfers cleanly: the imag-share ban again drives the previous-token head to a cos-only
+implementation (\rif${\approx}0.005$), rerouted to a different, non-seeded site, at a formation delay of
+$+33$--$50\%$ that lands in the toy range and is sign-consistent across seeds, so the non-default implementation
+stays reachable and solution degeneracy does not shrink at scale. Two honest corrections travel with this. First,
+at real-corpus scale the ban is \emph{not} capability-free: general language-model learning is also delayed
+(validation crossings $+8$--$23\%$; endpoint gap ${\approx}{+}0.04$--$0.05$ nats), so the toy report of an
+unaffected LM floor overstates, and the circuit-specific delay is the part above this general slowdown. Second, the
+assist/acceleration arm does \emph{not} cleanly test transfer: the frozen plant we used was behaviorally inert at
+160M, never functioning as a previous-token head (seeded attention stayed at the uniform baseline), and it was
+handicapped by freezing a slot that is itself the natural previous-token winner; the pilot therefore establishes
+only that this plant construction fails to install a functional head at 160M, not whether initialization can
+accelerate at scale, which a scale-adequate plant would settle. Weak-regularizer selection also remains untested at
+scale.
 
 \section{Takeaway}
 The spectral economy of attention is not only measurable and priced (companion paper) but \emph{steerable} at toy
 scale: weak, ban-free assistance selects which functionally-equivalent spectral implementation a circuit adopts, at
 a cost far below banning the alternative, while solution-specific initialization accelerates circuit formation
-(toy scale only; the acceleration does not survive at 160M, see the caveats above). To the extent selection
-transfers --- our 160M pilot finds the ban-induced selection reproduces --- ``which algorithm a circuit
-implements'' becomes a partly controllable design choice, relevant to interpretability-by-construction and to
+(a toy-scale result; whether it transfers is not yet cleanly tested, our 160M assist arm being confounded by a
+behaviorally inert plant, see the caveats above). On the side that does transfer, our 160M pilot finds the
+ban-induced selection and its cost carry over with solution degeneracy intact, so ``which algorithm a circuit
+implements'' is at least partly a controllable design choice, relevant to interpretability-by-construction and to
 installing a chosen implementation class. The one knob that transfers happens to install a
 \emph{weight-audit-evading} implementation (cos-only, \rif$\,{\approx}0.003$); it is nonetheless not hideable,
 because companion propagator-level work finds that implementations which vanish from the weight fingerprint remain
