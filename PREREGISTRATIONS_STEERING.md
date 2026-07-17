@@ -42,3 +42,21 @@ the note as findings. Verbatim text:
   unfrozen vs 900 free).
 
 P1-paper pre-registrations (dynamics Q1–Q3; intervention P1–P4) are in `INTERVENTION_PLAN.md`.
+
+## 160M scale-transfer experiments (frozen before each launch; see plan files for full text)
+
+- **P-M22-redo** (functional-plant acceleration transfer; frozen before the two assist re-runs):
+  acceleration transfers if the induction crossing beats free in both seeds at capability parity.
+  **Outcome: CONFIRMED** (0.364/0.388B to 0.267/0.267B tokens, endpoint validation gap at or under
+  0.006 nats; seeded-mask control passed). The earlier inert-plant null is diagnosed in the paper.
+- **P-M31** (selection by pure assistance at 160M): population selection to the cos-only
+  implementation with capability and speed accounting against the ban. **Outcome: population clause
+  CONFIRMED and dominance over the ban observed; the frozen per-head argmax threshold was met in one
+  of two seeds and is reported as falsified as frozen.**
+- **P-M31b** (bias-only plant construction replication): **Outcome: population selection, cost, and
+  speed dominance REPLICATED; the construction hypothesis behind the re-run was falsified and is
+  reported as such.**
+- **P-M31lambda** (dose curve, lambda in {1,3,10}; frozen at push before any run): existence of a
+  per-head conversion dose. **Outcome: FALSIFIED in the informative direction; the load-bearing
+  head's retention rises with dose (dose-defying concentration), population selection saturates from
+  lambda=1, and dominance over the ban breaks on cost at lambda=10.**

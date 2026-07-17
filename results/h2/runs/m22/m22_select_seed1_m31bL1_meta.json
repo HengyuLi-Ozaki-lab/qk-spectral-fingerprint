@@ -1,0 +1,48 @@
+{
+ "arm": "select",
+ "seed": 1,
+ "tokens": 4000000000,
+ "lam": 1.0,
+ "bias_B": 8.0,
+ "bias_only": true,
+ "plant": {
+  "L1H9": {
+   "k_norm": 2.2169923782348633,
+   "B": 8.0,
+   "weight_plant": false
+  },
+  "L1H7": {
+   "k_norm": 2.2490320205688477,
+   "B": 8.0,
+   "weight_plant": false
+  },
+  "L1H1": {
+   "k_norm": 2.2359187602996826,
+   "B": 8.0,
+   "weight_plant": false
+  },
+  "L3H7": {
+   "k_norm": 2.2054004669189453,
+   "B": 8.0,
+   "weight_plant": false
+  },
+  "L3H0": {
+   "k_norm": 2.220492124557495,
+   "B": 8.0,
+   "weight_plant": false
+  },
+  "L3H1": {
+   "k_norm": 2.196568727493286,
+   "B": 8.0,
+   "weight_plant": false
+  }
+ },
+ "seeded": [
+  "L1H9",
+  "L1H7",
+  "L1H1",
+  "L3H7",
+  "L3H0",
+  "L3H1"
+ ]
+}

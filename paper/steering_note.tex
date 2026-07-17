@@ -8,17 +8,17 @@
 \usepackage{xcolor}
 \usepackage{xspace}
 \usepackage{authblk}
-\usepackage[numbers,round]{natbib}
-\usepackage[hidelinks]{hyperref}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
 \graphicspath{{figures/}}
 
 \newcommand{\Rope}{RoPE\xspace}
 \newcommand{\M}{\ensuremath{M}\xspace}
 \newcommand{\dirfrac}{\texttt{dir\_frac}\xspace}
 \newcommand{\rif}{\texttt{rope\_imag\_frac}\xspace}
+\newcommand{\Mt}{\ensuremath{M_t}\xspace}
 
-\title{\textbf{Steering Is Cheaper Than Banning:\\
-Assistance-Based Selection of Attention's Spectral Solutions}}
+\title{\textbf{Steering the Spectral Algebra of Attention Circuits in Transformer Pretraining}}
 \author[1]{Li Hengyu}
 \affil[1]{Institute for Solid State Physics, The University of Tokyo\\
 \texttt{lihengyu@issp.u-tokyo.ac.jp}}
@@ -28,105 +28,172 @@ Assistance-Based Selection of Attention's Spectral Solutions}}
 \maketitle
 
 \begin{abstract}
-A companion study showed that the positional scheme sets the \emph{default} spectral algebra of the attention
-solutions a transformer learns --- rotational (RoPE) vs.\ content-like (learned-absolute) previous-token heads ---
-and that this default is a training \emph{preference}, not a hard constraint: constraints that ban a spectral
-channel are rerouted around at a significant, quantifiable search cost (up to $2.9\times$ slower formation). Here we
-ask the constructive converse: can pure \emph{assistance} --- initialization or regularization toward a chosen
-spectral algebra, with no bans --- accelerate or \emph{select} which functionally-equivalent implementation a
-circuit forms? On a controlled induction task (2-layer models, two positional schemes, $n{=}5$ seeds,
-pre-registered), we find three things. (1) \textbf{Solution-specific initialization accelerates formation} in both
-schemes ($-28\%$ RoPE, $-37\%$ APE; rank-biserial $+1.0$, $p{=}0.004$) at zero capability cost, whereas
-initializing merely the algebra \emph{class} does not, and regularizing toward the default \emph{slows} formation
-monotonically --- assistance is a property of solution-specific seeds, not of spectral fields. (2) \textbf{Weak
-assistance selects the implementation}: pushed toward the non-default spectral form, $5/5$ runs form the
-non-default implementation vs.\ $0/5$ free, in both schemes (Fisher $p{=}0.004$), at full capability --- and a
-dissection shows the weak regularizer alone is the \emph{selector} (flipping at zero formation cost under \Rope)
-while initialization alone is the \emph{accelerator}. (3)
-\textbf{Steering is cheaper than banning}: the same implementation flip that costs $2.9\times$ to force by
-constraint is bought by assistance at $1.3\times$ --- and the assistance cost tracks the \emph{target's} intrinsic
-search difficulty (negative for RoPE's near-parity alternative, $+30\%$ for APE's hard symmetric target). We frame
-these as an early, toy-scale demonstration that the spectral economy of attention is not only measurable but
-\emph{steerable}, and state the open mechanism (planted RoPE rotations act as scaffolds, not seeds) and scale
-caveats plainly.
+Which algorithms a transformer acquires during training, and whether that choice can be steered, are central
+questions in mechanistic interpretability and for the prospect of models that are auditable by construction.
+A companion study of the QK operator's spectrum established that the positional encoding scheme sets a default spectral algebra for the
+attention heads implementing induction, and that this default is a preference rather than a constraint: banning a
+spectral channel is rerouted around at a measurable formation cost. We ask the constructive converse: whether
+\emph{ban-free assistance}, either an initialization toward a chosen implementation or a weak population-level
+regularizer, can accelerate or select what forms. In pre-registered two-layer experiments the two levers separate
+cleanly: solution-specific initialization accelerates formation ($-28\%$/$-37\%$ across positional schemes,
+zero capability cost) but does not select the implementation; the weak regularizer selects ($5/5$ vs.\
+$0/5$ runs) but does not accelerate. The implementation flip that a ban forces at $2.9\times$ formation cost,
+assistance obtains at $1.3\times$. Both levers survive real-corpus pretraining at 160M parameters: a functional plant
+accelerates induction formation by $27$--$31\%$ at capability parity, and weak assistance selects as deeply as a
+ban while remaining cheaper and faster within a dose window ($\lambda\le3$). A dose curve exposes the mechanism's
+limit, which we name \emph{dose-defying concentration}: population pressure converts the population at the
+smallest dose, yet concentrates the default algebra into the load-bearing head. Steering learned circuits is thus
+cheaper than banning them, bounded by an active retention effect. Because the steered implementation evades
+weight-space fingerprints while remaining visible to propagator diagnostics, such interventions also remain
+auditable.
 \end{abstract}
 
-\section{Background and question}
-The companion paper \citep{li2026fingerprint} establishes, across seven pretrained models and three positional
-schemes, that the complex spectrum of the QK operator $\M{=}W_q^\top W_k$ is the \emph{fingerprint} of the
-algorithm a head implements: previous-token heads are spectrally rotational under \Rope and content-like under
-learned-absolute/ALiBi positions; the profile is consolidated \emph{after} circuit formation; and constrained
-training reroutes around any banned spectral channel at a significant search cost (formation-time penalty up to
-$2.9\times$; all pre-registered contrasts $q_{\mathrm{BH}}{\le}0.016$). That established a \emph{negative} lever:
-banning is possible but expensive and reroutable. This note tests the \emph{positive} lever --- assistance --- and
-asks whether the same spectral economy that prices bans also prices, and enables, \emph{steering}.
+\section{Introduction}
+Much of what makes transformer language models \citep{vaswani2017attention} capable arrives as \emph{emergent
+circuits}: coordinated groups of attention heads, with the induction circuit behind in-context learning as the
+canonical example \citep{elhage2021framework,olsson2022induction,wang2022ioi}. A substantial observational
+literature now reads such circuits out of trained weights and maps when they form during pretraining
+\citep{tigges2024llm,bietti2023birth,reddy2024mechanistic,singh2024needs,huang2026dissecting}. A younger line
+moves from observation to intervention: regularizing interpretable structure during pretraining
+\citep{chen2024sudden}, constraining the attention parametrization \citep{kitaev2020reformer,courtois2024symmetric},
+or shaping initialization \citep{saponati2025}. The long-term prospect is models whose internal algorithms are, to
+a useful degree, chosen at training time rather than discovered afterwards: interpretability by
+construction rather than post hoc.
 
-Concretely: (Q1) does assistance toward a scheme's default algebra \emph{accelerate} circuit formation? (Q2) does
-weak assistance toward the \emph{non-default} algebra \emph{select} which of two functionally-equivalent
+For attention, a concrete handle on ``which algorithm'' is the spectral structure of the QK operator
+$\M = W_q^\top W_k$. Its symmetric/antisymmetric and complex-eigenvalue content separates head function
+\citep{saponati2025,millidge2022svd,jamil2026routing}, and the choice of positional encoding, whether rotary
+position embeddings (\Rope) \citep{su2021roformer,barbero2025rope,urrutia2025decoupling} or learned absolute
+position embeddings (APE), determines which structure the previous-token heads feeding induction adopt. The first
+of two companion papers, hereafter the \emph{QK-fingerprint} paper \citep{li2026fingerprint}, showed across seven
+pretrained models that this choice is systematic (rotational under \Rope; content-like under APE and under the
+linear-bias scheme ALiBi), that the spectral signature consolidates after circuit formation, and that it is
+a default rather than a necessity: constrained training reroutes around any banned channel at a measurable
+cost, up to $2.9\times$ slower formation. The second, hereafter the \emph{propagator} paper
+\citep{li2026pseudospectra}, extends the account to the iterated attention propagator. Both are diagnostic: they
+price what training prefers and what prohibitions cost. This paper supplies the positive lever, assistance, and
+asks whether the same spectral economy that prices bans also enables steering.
+
+Concretely: (Q1) does assistance toward a scheme's default algebra accelerate circuit formation? (Q2) does
+weak assistance toward the non-default algebra select which of two functionally-equivalent
 implementations forms, without bans? (Q3) how does the cost of steering compare to the cost of banning the same
-outcome? Predictions were frozen before runs (P-A1/P-A2/P-A3 in the program's roadmap); we report falsified
-predictions with the same prominence as confirmations.
+outcome? (Q4) do any of these survive real-corpus pretraining? Predictions were frozen before runs; we report
+falsified predictions with the same prominence as confirmations.
 
-\section{Setup}
-We reuse the companion paper's constrained-training harness: 2-layer attention-only models ($d{=}128$, 4 heads,
+\textbf{Contributions.}
+\begin{enumerate}\itemsep1.5pt
+\item \textbf{Assistance is a lever, and its two ingredients separate} (\S\ref{sec:results}): a solution-specific
+initialization accelerates circuit formation while a weak population-level regularizer selects the
+implementation. Initialization does not select; the regularizer does not accelerate. Algebra-class initialization
+and regularization fields do neither.
+\item \textbf{Steering is cheaper than banning} (\S\ref{sec:results}, \S\ref{sec:scale}): assistance reaches the
+same implementation a ban forces, at a fraction of the cost, both at toy scale and at 160M.
+\item \textbf{Both levers transfer to real-corpus pretraining} (\S\ref{sec:scale}): at 160M/4B, a functional plant
+accelerates induction formation by $27$--$31\%$ at capability parity, and weak assistance selects the non-default
+implementation as deeply as a ban while being cheaper and faster.
+\item \textbf{A dose curve, and a mechanistic limit we name \emph{dose-defying concentration}}
+(\S\ref{sec:scale}): population-mean pressure converts the population at the smallest dose, but the head that
+carries the function retains more default algebra as pressure grows. Per-head control is therefore a
+plant-side lever, not a penalty-side one. This turns the ``suppress-generic / retain-functional'' law of the
+QK-fingerprint and propagator papers from an observation into a dose-resolved, interventional result.
+\end{enumerate}
+
+\section{Related work}
+\textbf{Circuit formation and its dynamics.} Induction heads and their phase change are the canonical object of
+study \citep{olsson2022induction}; formation has been dissected in toy models \citep{bietti2023birth,
+reddy2024mechanistic,singh2024needs} and tracked across public checkpoints and scale
+\citep{tigges2024llm}. This line is observational: it watches circuits form. We intervene on formation.
+
+\textbf{Constraining structure during training.} The closest precedents constrain or regularize an interpretable
+property while training. \citet{chen2024sudden} regularize a syntactic property during MLM pretraining;
+symmetric dot-product BERT trains competitively \citep{courtois2024symmetric}; shared-QK attention is an
+architectural constraint \citep{kitaev2020reformer}; and \citet{saponati2025} report that symmetric
+initialization can speed encoder training. These are constraints or architecture choices. Our levers are
+ban-free and, crucially, decomposed: we separate the initialization from the penalty and show they do
+different jobs.
+
+\textbf{The spectral algebra of QK.} The symmetric/antisymmetric decomposition of the QK matrix
+\citep{saponati2025} and per-head complex eigenvalues of the attention interaction \citep{jamil2026routing}
+describe learned structure; the QK-fingerprint paper \citep{li2026fingerprint} anchors it behaviorally and shows
+the positional scheme sets the default spectral algebra, reroutable at a measurable cost, while the
+propagator paper \citep{li2026pseudospectra} analyzes the iterated propagator. This paper supplies the constructive
+converse those papers point to: not what training prefers, but what it can be persuaded to do, and at what price.
+
+\section{Method}\label{sec:method}
+\textbf{Operators, metrics, and implementation classes.} For a head with projections $W_q,W_k$, the pre-softmax
+score is the bilinear form $x_i^\top \M x_j$ in the QK operator $\M=W_q^\top W_k$ \citep{elhage2021framework}.
+Under rotate-half \Rope\ \citep{su2021roformer}, \M\ decomposes into per-frequency complex sub-operators \Mt, and
+the relative-position asymmetry of the score kernel is carried entirely by their imaginary parts:
+$\mathrm{score}(\Delta)-\mathrm{score}(-\Delta)=\sum_t 2\sin(\Delta\theta_t)\,n^\top\mathrm{Im}(\Mt)\,n$
+\citep{li2026fingerprint}. Two weight-only statistics summarize a head's implementation: \rif, the share of QK
+mass in the rotary phase channel, $\sum_t\|\mathrm{Im}(\Mt)\|_F^2\big/\sum_t\!\big(\|\mathrm{Re}(\Mt)\|_F^2
++\|\mathrm{Im}(\Mt)\|_F^2\big)$, and \dirfrac$\,=\|\M_A\|_F/\|\M\|_F$, the antisymmetric fraction of the static
+operator. A previous-token head is \emph{phase-carried} when \rif\ sits near the free-training default
+($\approx0.5$) and \emph{cos-only} when \rif$\,\le0.10$; under APE the analogous classes are read from \dirfrac\
+(thresholds $0.35/0.10$). All thresholds were pre-set from the QK-fingerprint paper's bimodal distributions before any run
+reported here.
+We reuse the QK-fingerprint paper's constrained-training harness: 2-layer attention-only models ($d{=}128$, 4 heads,
 $d_k{=}32$) trained from scratch on a per-sequence random-map induction task (successor prediction requires
 finding the previous occurrence of the current token and copying), $n{=}5$ seeds, formation step defined as the
-first eval crossing the induction-CE threshold (verbatim from the companion). Free (unassisted) arms reproduce the
-companion's numbers exactly ($600{\pm}0$ APE, $940{\pm}55$ RoPE). Assistance comes in three forms, all
-\emph{ban-free}: (i) \emph{solution-init} --- initialize the seed heads' QK factors to carry the target
-implementation's positional offset (RoPE: the $\Delta{=}{-}1$ phase $\theta$; APE: a symmetric nearby-position
-plant); (ii) \emph{algebra-init} --- initialize only the target's algebra \emph{class} (random phases / a skew
-plant) without the specific offset; (iii) \emph{assist-reg} --- a bounded complement penalty pushing the
-population's mean spectral share toward the target, with detached denominators. Placebos apply the cross-scheme
+first eval crossing the induction-CE threshold (verbatim from that paper). Free (unassisted) arms reproduce its
+numbers exactly ($600{\pm}0$ APE, $940{\pm}55$ RoPE). Assistance takes three forms, all of them
+ban-free: (i) \emph{solution-init}, which initializes the seed heads' QK factors to carry the target
+implementation's positional offset (the $\Delta{=}{-}1$ phase $\theta$ under \Rope; a symmetric nearby-position
+plant under APE); (ii) \emph{algebra-init}, which installs only the target's algebra class (random phases,
+or a skew plant) without the specific offset; and (iii) \emph{assist-reg}, a bounded complement penalty that
+pushes the population's mean spectral share toward the target, with detached denominators. Placebos apply the cross-scheme
 algebra (RoPE-style under APE and vice versa) and a random orthogonal plant. Implementation class is read out by
-the companion's weight batteries (\rif for RoPE, \dirfrac for APE) with thresholds pre-set from the companion's
-bimodal distributions. All outputs and per-run tables are released.
+the QK-fingerprint paper's weight batteries (\rif for RoPE, \dirfrac for APE), with the pre-set thresholds of
+\S\ref{sec:method}. All outputs and per-run tables are released.
 
-\section{Results}
-\textbf{(1) Assistance accelerates --- but only as solution-specific initialization.} Figure~\ref{fig:m12} and
+\section{Results: toy scale}\label{sec:results}
+\textbf{(1) Assistance accelerates, but only as solution-specific initialization.} Figure~\ref{fig:m12} and
 Table~\ref{tab:m12}: solution-init speeds formation in both schemes (RoPE $940{\to}680$, $-28\%$; APE
-$600{\to}380$, $-37\%$; one-sided exact MWU $p{=}0.004$, rank-biserial $+1.0$), at \emph{zero} capability cost
-(final induction CE unchanged; the solution-init arms end with \emph{higher} previous-token scores). The
-pre-registered primary prediction P-A1 --- that initializing the algebra \emph{class} suffices --- is
-\textbf{falsified as frozen}: algebra-init is non-significant in both schemes (RoPE $q_{\mathrm{BH}}{=}0.16$,
-suggestive rb$=+0.64$; APE null at the eval-grid resolution). Placebos are null (P-A2 passes): no cross-scheme or
-random plant speeds formation, so the effect is target-specific, not an initialization-scale artifact. A reported
-surprise: \emph{assist-reg} toward the default \emph{slows} formation, monotonically in $\lambda$ (up to $3.9\times$
-at APE $\lambda{=}10$, with capability damage) --- mirroring the companion's constraint-cost law from the opposite
-sign. \emph{Any global spectral field --- toward or away from the default --- has a search cost; what accelerates
-is a solution-specific seed, not a field.}
+$600{\to}380$, $-37\%$; one-sided exact MWU $p{=}0.004$, rank-biserial $+1.0$), at zero capability cost
+(final induction CE unchanged; the solution-init arms end with higher previous-token scores). Our
+primary pre-registered prediction held that initializing the algebra class would suffice; that prediction
+is \textbf{falsified as frozen}. Algebra-init is non-significant in both schemes (RoPE $q_{\mathrm{BH}}{=}0.16$
+with a suggestive rank-biserial of $+0.64$; APE null at the eval-grid resolution). Placebos are null, passing the
+pre-registered specificity check: no cross-scheme or random plant speeds formation, so the effect is
+target-specific rather than an artifact of initialization scale. One result surprised us: assist-reg
+toward the default slows formation, monotonically in $\lambda$ (up to $3.9\times$ at APE
+$\lambda{=}10$, with capability damage), mirroring the QK-fingerprint paper's constraint-cost law from the
+opposite sign. Any global spectral field, toward or away from the default, has a search cost; what
+accelerates is a solution-specific seed, not a field.
 
-\textbf{(2) Weak assistance selects the implementation.} Pushed weakly toward the \emph{non-default} form, every
-run forms the non-default implementation: $5/5$ vs.\ $0/5$ free, in \emph{both} schemes (Fisher exact
+\textbf{(2) Weak assistance selects the implementation.} Pushed weakly toward the non-default form, every
+run forms the non-default implementation: $5/5$ vs.\ $0/5$ free, in both schemes (Fisher exact
 $p{=}0.004$ each; zero unclassified). Under RoPE-assist every final previous-token head is cos-only
 (\rif${\in}[0.016,0.043]$, kernel peak still at $\Delta{=}{-}1$) vs.\ $5/5$ phase-carried when free
 (\rif${\approx}0.52$); under APE-assist every head is symmetric (\dirfrac${\approx}0.012$) vs.\ $5/5$ antisymmetric
-when free. Capability is unchanged (P-A3 selection clause passes maximally). A pre-registered dissection grid
-($108$ runs) then separates the two ingredients: \emph{the weak live regularizer is the selector and the
-initialization is the accelerator} --- reg-only flips the implementation $5/5$ in both schemes (under RoPE at
-\emph{zero} formation cost: the formation-step multiset is identical to free), while init-only accelerates
-without flipping ($0/5$ both schemes); the combined arm's cost decomposes accordingly ($\approx0$ RoPE, $+30\%$
-APE, carried entirely by the selection).
+when free. Capability is unchanged, and the pre-registered selection criterion is met in full. A pre-registered
+dissection grid ($108$ runs) then separates the two ingredients: the weak live regularizer is the selector
+and the initialization is the accelerator. Reg-only flips the implementation $5/5$ in both schemes, under RoPE at
+zero formation cost (the formation-step multiset is identical to free), while init-only accelerates without
+flipping ($0/5$ in both schemes); the combined arm's cost decomposes accordingly ($\approx0$ under RoPE, $+30\%$
+under APE, carried entirely by the selection).
 
-\textbf{(3) Steering is cheaper than banning.} The cost of assisted selection tracks the \emph{target's} intrinsic
+\textbf{(3) Steering is cheaper than banning.} The cost of assisted selection tracks the target's intrinsic
 search difficulty, and is far below the ban cost for the same outcome. Forming RoPE's cos-only implementation costs
-$-23\%$ under assistance (\emph{faster} than free) vs.\ $+36$--$52\%$ to force it by banning the phase channel
-(companion); forming APE's symmetric implementation costs $+30\%$ under assistance vs.\ $2.9\times$ to force it by
-banning antisymmetry. \emph{Assisted selection $\ll$ constrained rerouting for the same implementation flip}
-(Table~\ref{tab:cost}). The two levers also have different cost \emph{geometries}: a $\lambda$-grid over
-$33\times$ shows the ban's cost is a \emph{plateau} --- the constraint binds already at $\lambda{=}0.3$ and the
-delay is $\lambda$-insensitive thereafter (the cost \emph{is} the reroute, a step function of whether the ban
-binds; an earlier apparent non-monotonicity did not replicate at $n{=}5$ and is retired) --- whereas
-toward-default field pressure grows monotonically and, under APE, superlinearly with capability damage.
+$-23\%$ under assistance (faster than free) vs.\ $+36$--$52\%$ to force it by banning the phase channel
+\citep{li2026fingerprint}; forming APE's symmetric implementation costs $+30\%$ under assistance vs.\ $2.9\times$ to force it by
+banning antisymmetry. Assisted selection $\ll$ constrained rerouting for the same implementation flip
+(Table~\ref{tab:cost}). The two levers also have different cost geometries. A $\lambda$-grid spanning
+$33\times$ shows that the ban's cost is a plateau: the constraint binds already at $\lambda{=}0.3$ and the delay
+is $\lambda$-insensitive thereafter, because the cost is the reroute itself, a step function of whether the ban
+binds (an earlier apparent non-monotonicity did not replicate at $n{=}5$ and is retired). Toward-default field
+pressure, by contrast, grows monotonically and, under APE, superlinearly, with capability damage.
 
-\begin{table}[t]\centering\small
-\begin{tabular}{lccc}\toprule
-arm & RoPE formation & APE formation & final capability\\\midrule
-free & $940{\pm}55$ & $600{\pm}0$ & floor\\
-algebra-init & $840{\pm}89$ (ns) & $600{\pm}0$ (ns) & floor\\
-\textbf{solution-init} & $\mathbf{680{\pm}45}$ ($-28\%$) & $\mathbf{380{\pm}45}$ ($-37\%$) & floor (higher prev)\\
-assist-reg $\lambda{=}1$ & $1080{\pm}45$ (slower) & $960{\pm}55$ (slower) & floor\\
-assist-reg $\lambda{=}10$ & $1380{\pm}130$ (slower) & $2340{\pm}219$ (slower) & APE damaged\\
+\begin{table}[t]\centering\small\setlength{\tabcolsep}{5pt}
+\begin{tabular}{l cc l}\toprule
+ & \multicolumn{2}{c}{formation step (mean$\,\pm\,$s.d.)} & \\
+\cmidrule(lr){2-3}
+arm & \Rope & APE & final capability\\\midrule
+free & $940\pm55$ & $600\pm0$ & at floor\\
+algebra-init & $840\pm89$~(ns) & $600\pm0$~(ns) & at floor\\
+solution-init & $\mathbf{680\pm45}$~($-28\%$) & $\mathbf{380\pm45}$~($-37\%$) & at floor; higher prev\\
+assist-reg $\lambda{=}1$ & $1080\pm45$~(slower) & $960\pm55$~(slower) & at floor\\
+assist-reg $\lambda{=}10$ & $1380\pm130$~(slower) & $2340\pm219$~(slower) & APE damaged\\
 \bottomrule\end{tabular}
 \caption{Assistance-hinge formation steps ($n{=}5$; one-sided exact MWU vs.\ free, BH-FDR). Solution-specific
 initialization accelerates both schemes at rank-biserial $+1.0$, $p{=}0.004$; algebra-class init and
@@ -134,11 +201,13 @@ regularization fields do not.}
 \label{tab:m12}
 \end{table}
 
-\begin{table}[t]\centering\small
-\begin{tabular}{lccc}\toprule
-implementation flip & ban cost (companion) & \textbf{assist cost (this note)} & selection\\\midrule
-$\to$ RoPE cos-only (non-default) & $+36$--$52\%$ & $\mathbf{-23\%}$ (faster) & $5/5$ vs $0/5$\\
-$\to$ APE symmetric (non-default) & $2.9\times$ & $\mathbf{+30\%}$ & $5/5$ vs $0/5$\\
+\begin{table}[t]\centering\small\setlength{\tabcolsep}{5pt}
+\begin{tabular}{l cc c}\toprule
+ & \multicolumn{2}{c}{formation-time cost of the flip} & \\
+\cmidrule(lr){2-3}
+target implementation & by ban \citep{li2026fingerprint} & by assistance (ours) & selection vs.\ free\\\midrule
+\Rope\ cos-only (non-default) & $+36$--$52\%$ & $\mathbf{-23\%}$~(faster) & $5/5$ vs.\ $0/5$\\
+APE symmetric (non-default) & $2.9\times$ & $\mathbf{+30\%}$ & $5/5$ vs.\ $0/5$\\
 \bottomrule\end{tabular}
 \caption{Steering vs.\ banning for the same implementation flip (Fisher $p{=}0.004$ each). Assistance selects the
 same outcome a ban forces, far more cheaply; the assist cost tracks the target's intrinsic search difficulty.}
@@ -146,62 +215,208 @@ same outcome a ban forces, far more cheaply; the assist cost tracks the target's
 \end{table}
 
 \begin{figure}[t]\centering
-\includegraphics[width=\linewidth]{m12_formation.png}
-\caption{Formation steps by assistance arm (left RoPE, right APE; $n{=}5$/3 seeds). Solution-init (third column)
-accelerates both schemes; algebra-init and placebos sit at free; regularization fields slow formation, monotonically
-in $\lambda$.}
+\includegraphics[width=\linewidth]{m12_formation.pdf}
+\caption{Formation steps by assistance arm (\textbf{a}: \Rope; \textbf{b}: APE; $n{=}5$ seeds per arm, placebos
+$n{=}3$; dashed line marks the free median). Solution-specific initialization accelerates both schemes;
+algebra-class initialization and both placebos sit at the free baseline; regularization fields slow formation,
+monotonically in $\lambda$.}
 \label{fig:m12}
 \end{figure}
 
 \section{Open mechanism and caveats}
-\textbf{Scaffold, not seed.} Under RoPE the planted solution is \emph{never} adopted --- in all $5/5$ acceleration
-runs the planted heads end with prev${\approx}0.02$ and the circuit forms in \emph{unseeded} heads --- yet
-formation still accelerates $28\%$. The RoPE plant acts as a \emph{scaffold} (candidate mechanisms: gradient
-shaping through the second layer / OV, or the plant's coherent structure aiding early representation formation),
-not a seed. Under APE the plant \emph{is} adopted ($5/5$). A pre-registered freeze test sharpens the scaffold
-reading: \emph{freezing the plant entirely} (no gradient into the seeded heads) preserves --- in fact
-\emph{doubles} --- the speedup ($500$ median vs.\ $700$ unfrozen vs.\ $900$ free; rb$=+1.0$, capability intact).
-The seed need not even be trainable; training's own modification of the planted heads apparently \emph{degrades}
-the scaffold, pointing at a representational/gradient-shaping mechanism rather than plant adaptation --- which we
-still flag as open rather than adjudicated.
+\textbf{Scaffold, not seed.} Under \Rope\ the planted solution is never adopted: in all five acceleration runs
+the planted heads end with a previous-token score near $0.02$ and the circuit forms in unseeded heads. Formation
+nevertheless accelerates by $28\%$, so the \Rope\ plant acts as a scaffold rather than a seed; candidate
+mechanisms include gradient shaping through the second layer and the plant's coherent structure aiding early
+representation formation. Under APE the plant is adopted ($5/5$). A pre-registered freeze test sharpens the
+scaffold reading: freezing the plant entirely, with no gradient into the seeded heads, preserves and in fact
+doubles the speedup ($500$ median versus $700$ unfrozen and $900$ free; rank-biserial $+1.0$, capability intact).
+The seed need not even be trainable, and training's own modification of the planted heads apparently degrades the
+scaffold, which points to a representational or gradient-shaping mechanism rather than plant adaptation. We flag
+the mechanism as open rather than adjudicated.
 \textbf{Caveats}: $n{=}5$; 2-layer attention-only models on one synthetic task; APE formation is quantized at the
 $100$-step eval grid (so the APE algebra-init null means ``no effect at $100$-step resolution,'' not a measured
-zero). These results are an existence demonstration of steerability at toy scale, not a scaling law. A
-160M-parameter pretraining pilot (Pythia-160M, two seeds, through the induction formation window) tests transfer,
-and the ban/selection side transfers cleanly: the imag-share ban again drives the previous-token head to a cos-only
-implementation (\rif${\approx}0.005$), rerouted to a different, non-seeded site, at a formation delay of
-$+33$--$50\%$ that lands in the toy range and is sign-consistent across seeds, so the non-default implementation
-stays reachable and solution degeneracy does not shrink at scale. Two honest corrections travel with this. First,
-at real-corpus scale the ban is \emph{not} capability-free: general language-model learning is also delayed
-(validation crossings $+8$--$23\%$; endpoint gap ${\approx}{+}0.04$--$0.05$ nats), so the toy report of an
-unaffected LM floor overstates, and the circuit-specific delay is the part above this general slowdown. Second, the
-assist/acceleration arm does \emph{not} cleanly test transfer: the frozen plant we used was behaviorally inert at
-160M, never functioning as a previous-token head (seeded attention stayed at the uniform baseline), and it was
-handicapped by freezing a slot that is itself the natural previous-token winner; the pilot therefore establishes
-only that this plant construction fails to install a functional head at 160M, not whether initialization can
-accelerate at scale, which a scale-adequate plant would settle. Weak-regularizer selection also remains untested at
-scale.
+zero). These results are an existence demonstration of steerability at toy scale; the next section tests transfer.
 
-\section{Takeaway}
-The spectral economy of attention is not only measurable and priced (companion paper) but \emph{steerable} at toy
-scale: weak, ban-free assistance selects which functionally-equivalent spectral implementation a circuit adopts, at
-a cost far below banning the alternative, while solution-specific initialization accelerates circuit formation
-(a toy-scale result; whether it transfers is not yet cleanly tested, our 160M assist arm being confounded by a
-behaviorally inert plant, see the caveats above). On the side that does transfer, our 160M pilot finds the
-ban-induced selection and its cost carry over with solution degeneracy intact, so ``which algorithm a circuit
-implements'' is at least partly a controllable design choice, relevant to interpretability-by-construction and to
-installing a chosen implementation class. The one knob that transfers happens to install a
-\emph{weight-audit-evading} implementation (cos-only, \rif$\,{\approx}0.003$); it is nonetheless not hideable,
-because companion propagator-level work finds that implementations which vanish from the weight fingerprint remain
-fully visible as transient-reserve excess on the attention propagator ($31/31$ prev-carrying heads positive across
-all implementations). The weight battery reads \emph{implementation}, the propagator battery reads \emph{function},
-so a steered or rerouted circuit cannot evade both. We release the harness, seeds, and per-run tables.
+\section{Scale transfer: 160M-parameter pretraining}\label{sec:scale}
+We repeat the two central manipulations on \textbf{Pythia-160M} (12 layers, 12 heads, $25\%$ rotary) trained from
+scratch for 4B tokens through the induction formation window, $n{=}2$ seeds per cell, every contrast run in-box on
+the same code path.
 
-\paragraph{Reproducibility \& pre-registration.} Harness \texttt{src/\{h1\_hinge,h1\_analyze,h2\_m21\}.py}
-(extends the companion's \texttt{p10} additively; free arms bit-exact); predictions P-A1/P-A2/P-A3 and the
-follow-up family P-M21a--d/P-A5/P-E2 frozen before their respective runs; per-run tables
-\texttt{results/h1/m12\_summary.parquet}, \texttt{m13\_summary.parquet}, \texttt{results/h2/}; falsified
-predictions (P-A1; the $\lambda$ non-monotonicity flag P-M21c) reported as findings. Code and data:
+\textbf{Acceleration transfers.} Installing a functional previous-token solution at initialization
+accelerates induction formation: the induction crossing moves from $0.364$/$0.388$B tokens (free) to
+$0.267$/$0.267$B (assisted), i.e.\ $-27\%$/$-31\%$ in both seeds, at capability parity (endpoint validation gap
+$+0.003$/$+0.006$ nats; Fig.~\ref{fig:accel}a). It also accelerates an independent language-model measure, the in-context
+learning crossing, by $72$M/$121$M tokens, and it is not a measurement leak: masking the six seeded slots
+leaves the crossing at $0.267$B, and the top induction head at crossing is an unseeded slot. The plant is
+adopted and retained throughout. This required a second attempt, and the reason is instructive: our first
+160M plant was built in the rotary \emph{weights} ($W_K{=}R(\theta)W_Q$), which realizes a content-self-match
+kernel that is flat at $\Delta{=}{-}1$; the plant is behaviorally inert, its seeded attention never leaving the
+uniform baseline, and it never functions as a previous-token head. Planting the same phase in the content-independent rotary \emph{bias} gives a
+functional head at initialization (seeded prev-token attention $0.86$), and the acceleration appears. The earlier
+null was a plant-construction artifact, not a scale boundary. The effect replicates on a second rotary geometry
+($50\%$ rotary: $-31.1\%$/$-29.3\%$; architecture-level follow-up, in preparation).
+
+\begin{figure}[t]\centering
+\includegraphics[width=\linewidth]{m22_accel.pdf}
+\caption{Acceleration transfers to 160M-parameter pretraining. \textbf{(a)} Induction-head score through the
+formation window: the assisted runs (green) cross the $0.5$ threshold at $0.267$B tokens in both seeds versus
+$0.364$/$0.388$B free (blue); crosses mark the crossings. \textbf{(b)} Why the first attempt failed: the
+functional rotary-\emph{bias} plant is adopted and retained (seeded-slot previous-token attention ${\approx}0.9$
+throughout), whereas the earlier rotary-\emph{weight} plant is behaviorally inert, never leaving the uniform
+baseline. Solid/dashed: seeds.}
+\label{fig:accel}
+\end{figure}
+
+\textbf{Assistance selects the implementation and dominates the ban on three axes.} A functional cos-only plant
+plus a weak population-level imag-share regularizer ($\lambda{=}3$, all heads, no ban) drives the population
+to the non-default implementation as deeply as the ban does: $120$ and $120$ of $144$ heads convert to cos-only in
+one plant construction and $118$ and $129$ of $144$ in the other (two seeds each), and the population-median \rif\
+is $0.006$, versus the ban's $0.003$ and free's $0.51$. The assisted arm is also cheaper ($+0.013$--$0.036$
+versus the ban's $+0.039$--$0.048$ nats) and faster ($-25\%$ to $-31\%$ versus the ban's $+25\%$ to $+33\%$).
+Two independent plant constructions, four runs in total, agree.
+
+\textbf{A dose curve, and a phenomenon we name dose-defying concentration.} Sweeping the regularizer over
+$\lambda\in\{1,3,10\}$ separates two populations. The population converts at the smallest dose and saturates
+there (median \rif\ $0.011\to0.006$ from $\lambda{=}1$ on). The load-bearing head does the opposite: its
+phase content rises with pressure ($0.143$/$0.027$ at $\lambda{=}1$; $0.195$/$0.012$ at $\lambda{=}3$;
+$0.326$/$0.244$ at $\lambda{=}10$, where a second seeded head also re-retains; Fig.~\ref{fig:lambda}b). No
+$\lambda^{\ast}$ exists in
+$[1,10]$ and the trend excludes larger doses. A same-strength ban does convert that head ($0.005$), but
+only because a ban leaves the phase nowhere to sit. Population-mean regularization therefore cannot convert the
+head that carries the function: the pressure concentrates the default algebra into it. The retention half of
+the suppress-generic/retain-functional law is thus not passive leftover but an active, dose-defying effect, and the
+lever for per-head conversion is plant-side, not $\lambda$-side.
+
+\begin{figure}[t]\centering
+\includegraphics[width=\linewidth]{m31_lambda_curve.pdf}
+\caption{\textbf{Dose-defying concentration at 160M.} \textbf{(a)} The population converts at the smallest dose we
+tested and saturates there: population-median \rif\ collapses from the free default ($0.51$) to the floor for every
+$\lambda$. \textbf{(b)} The head that carries the function does the opposite, its phase content rising
+with $\lambda$ while the population stays at the floor. A same-strength ban does convert that head (crosses),
+but only because a ban leaves the phase nowhere to sit. \textbf{(c)} Cost against the ban: assistance is cheaper
+only within a dose window ($\lambda\le3$); at $\lambda{=}10$ the advantage inverts. Two seeds per cell (circles,
+squares).}
+\label{fig:lambda}
+\end{figure}
+
+\textbf{Where dominance holds.} The three-axis dominance is strict at $\lambda\in\{1,3\}$. At $\lambda{=}10$ it
+breaks on cost ($+0.055$/$+0.064$ nats, above the ban's $+0.039$/$+0.048$; speed still favors assistance,
+$-20\%$/$-31\%$): assisted selection at that dose is the ban plus a plant, and the plant's working
+previous-token supply conflicts with maximal phase suppression.
+
+\begin{table}[t]\centering\small\setlength{\tabcolsep}{5pt}
+\begin{tabular}{l c cc cc c}\toprule
+ & & \multicolumn{2}{c}{capability cost (nats)} & \multicolumn{2}{c}{induction speed vs.\ free} & \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}
+160M arm & pop.\ \rif & seed 0 & seed 1 & seed 0 & seed 1 & dominates ban?\\\midrule
+free                  & $0.51$ & --- & --- & --- & --- & ---\\
+assist $\lambda{=}1$  & $0.011$ & $+0.013$ & $+0.021$ & $-27\%$ & $-31\%$ & \textbf{yes}\\
+assist $\lambda{=}3$  & $0.006$ & $+0.022$ & $+0.030$ & $-27\%$ & $-25\%$ & \textbf{yes}\\
+assist $\lambda{=}10$ & $0.006$/$0.010$ & $+0.055$ & $+0.064$ & $-20\%$ & $-31\%$ & no (cost)\\
+ban $\lambda{=}10$    & $0.003$ & $+0.039$ & $+0.048$ & $+33\%$ & $+25\%$ & ---\\
+\bottomrule\end{tabular}
+\caption{Steering versus banning at 160M ($n{=}2$ seeds; both values shown). Assistance matches the ban's
+population depth while being cheaper and faster, strictly so at $\lambda\in\{1,3\}$. At $\lambda{=}10$ the cost
+advantage inverts, and the load-bearing head re-retains phase rather than converting: the dose-defying
+concentration effect.}
+\label{tab:scale}
+\end{table}
+
+\textbf{A design caution.} In the assisted models the previous-token supply is monopolized by the seeded slots:
+masking them collapses induction ($0.013$/$0.014$), whereas the same mask on free models leaves it intact
+($0.918$/$0.913$). Assistance buys speed and selection at the price of a more fragile supply chain.
+
+\textbf{Scope.} $n{=}2$ per cell, a single plant design, one model scale (160M/4B, through the formation window),
+and two rotary geometries; all contrasts in-box on the same code path.
+
+\section{Discussion}
+\textbf{The constructive half of a three-way distinction.} The QK-fingerprint paper separates three things the field
+often conflates: a trained circuit's \emph{dependence} on a structure (post-hoc ablation is catastrophic), a
+\emph{developmental preference} for it (the default forms fastest), and its \emph{necessity} (nothing there is
+strictly necessary, since bans are rerouted). That analysis is entirely negative: it prices what you forbid. The
+results here supply the positive half. A structure that training merely prefers can be chosen instead, and
+choosing is systematically cheaper than forbidding: within the dose window, assistance reaches the same
+implementation the ban forces while being cheaper, faster, and equally deep. Design leverage over learned
+algorithms lies in what you offer, not in what you prohibit.
+
+\textbf{What dose-defying concentration means.} The QK-fingerprint and propagator papers report a population-level regularity: training
+suppresses generic spectral structure while a functional minority retains it. Read observationally, retention looks
+passive, a leftover after suppression. The dose curve refutes that reading. As population-mean pressure grows,
+the population saturates at the floor while the load-bearing head's default algebra grows, until at
+$\lambda{=}10$ a second seeded head re-retains as well. Retention is active: the pressure does not merely spare the
+functional head, it concentrates the default algebra into it. The law is therefore not ``suppression stops at the
+useful head'' but ``suppression pushes the useful algebra into the head that needs it,'' which is a claim
+about where a resource goes, not merely about where it survives. This is what upgrades the law from observational
+to interventional, and it is testable elsewhere: any operator with a scarce, functionally-required channel should
+show the same concentration under population-level pressure.
+
+\textbf{A design principle, and a caution.} Two practical statements follow. First, the levers are not
+interchangeable: initialization buys speed and the penalty buys selection, so per-head control must come from the
+plant rather than from turning $\lambda$ up; the curve shows that a larger penalty backfires on exactly the head
+one wanted to convert. Second, assistance concentrates function into the slots you seed, which is precisely what makes it a
+single point of failure: masking the seeded heads collapses induction in the assisted models but not in free ones.
+Steering buys speed and choice at the cost of a more brittle supply chain, and any deployment of these levers
+should measure that.
+
+\textbf{Steering is auditable even when it hides.} The implementation that steering installs is the one that
+evades a weight-space fingerprint (cos-only, \rif${\approx}0.005$, two orders of magnitude below the default). If
+weight audits were the only instrument, steering would be a way to hide an algorithm in plain sight. They are not:
+the propagator paper \citep{li2026pseudospectra} finds that these same implementations remain fully
+visible as transient-reserve excess on the attention propagator. The weight battery reads implementation;
+the propagator battery reads function. A steered circuit can evade one, not both.
+
+\textbf{Limitations.} At toy scale, $n{=}5$ seeds, 2-layer attention-only models, one synthetic task, and an
+eval grid that quantizes APE formation. At 160M, $n{=}2$ seeds per cell, a single plant design, one model scale
+and token budget (4B, through the formation window), and two rotary geometries; the dose curve is three points.
+Every contrast is in-box on the same code path, which controls implementation drift but not the choice of task or
+architecture family. We have not tested a scale above 160M, a non-rotary positional scheme at scale, or a plant
+that targets the penalty per head rather than population-wide. The last of these is the design change our own dose
+curve recommends, and we have not run it.
+
+\section{Conclusion}
+The spectral economy of attention is not only measurable and priced \citep{li2026fingerprint,li2026pseudospectra} but steerable, and the
+levers survive real-corpus pretraining. Weak, ban-free assistance selects which functionally-equivalent spectral
+implementation a circuit adopts, at a cost far below banning the alternative; solution-specific initialization
+accelerates circuit formation, at toy scale and again at 160M ($-27\%$/$-31\%$) on two rotary geometries. Within
+the dose window where it holds ($\lambda\in\{1,3\}$), steering is cheaper and faster and as deep as
+the ban, so ``which algorithm a circuit implements'' is a controllable design choice, relevant to
+interpretability-by-construction and to installing a chosen implementation class. Two results sharpen rather than
+soften this. First, the dose curve shows the lever has a limit that is mechanistic, not merely practical:
+population-mean pressure converts the population but concentrates the default algebra into the load-bearing head,
+so per-head control must come from the plant, not the penalty. Second, the implementation that steering installs is
+weight-audit-evading (cos-only, \rif${\approx}0.005$). It is nevertheless not hideable, because the propagator
+paper \citep{li2026pseudospectra} finds that implementations which vanish from the weight
+fingerprint remain fully visible as transient-reserve excess on the attention propagator ($16$ of $16$ previous-token heads at toy scale across the
+free and ban-rerouted implementations, and all four at 160M). The weight battery reads implementation, the
+propagator battery reads function, so a steered or rerouted circuit cannot evade both.
+
+Several application directions follow directly from these levers. The nearest is circuit priming: a functional
+plant costs only a few lines of initialization arithmetic yet returned roughly thirty percent of the induction
+formation window at 160M, so seeding known circuits could shorten the expensive early phase of pretraining, or
+bring forward capabilities that are gated by late-forming circuits. A second is implementation standardization.
+Because weak assistance chooses which of several functionally equivalent implementations forms, a lab could
+canonicalize the circuit implementations its analysis tools understand best, making models interpretable by
+construction and letting probes and audits transfer across seeds and model revisions. A third is the audit
+protocol itself: reading weights for implementation and propagator dynamics for function gives a two-instrument
+stack under which a training-time intervention, whether a steer or a reroute, remains detectable, which matters
+wherever provenance of a model's internal algorithms must be verified. Finally, dose-defying concentration carries
+a warning for regularization-based control at large, including alignment-motivated penalties on undesired internal
+structure: population-level pressure does not remove the targeted property from the components that use it most,
+but concentrates it there, so such proposals should be evaluated per component rather than on population averages.
+Each of these directions inherits the scope limits stated above, and the 160M results should be read as an
+existence proof rather than a recipe. We release the harness, seeds, and per-run tables.
+
+\paragraph{Reproducibility and pre-registration.} The toy harness
+(\texttt{src/\{h1\_hinge,h1\_analyze,h2\_m21\}.py}) extends the QK-fingerprint paper's \texttt{p10} additively,
+and the free arms reproduce it bit-exactly; the 160M experiments use the same code path
+(\texttt{src/h2\_m22\_*.py}, \texttt{src/h2\_m31.py}). Every prediction was frozen in the released plan documents
+before its runs; the file labels there are P-A1 to P-A3 for the hinge and selection experiments, P-M21a to P-M21d
+and P-A5 for the dissection grid, P-E2 for the reserve check, and P-M22-redo, P-M31, P-M31b, and P-M31$\lambda$
+for the 160M transfer, selection, and dose-curve experiments. The falsified predictions (algebra-class
+initialization, P-A1; the $\lambda$ non-monotonicity flag, P-M21c; and the per-head conversion threshold within
+P-M31 and the $\lambda^{\ast}$ clause of P-M31$\lambda$) are reported as findings. Per-run tables are under
+\texttt{results/h1/} and \texttt{results/h2/}. Code and data:
 \url{https://github.com/HengyuLi-Ozaki-lab/qk-spectral-fingerprint}.
 
 \bibliographystyle{plainnat}
