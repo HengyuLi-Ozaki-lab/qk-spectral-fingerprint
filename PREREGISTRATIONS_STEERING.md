@@ -60,3 +60,21 @@ P1-paper pre-registrations (dynamics Q1–Q3; intervention P1–P4) are in `INTE
   per-head conversion dose. **Outcome: FALSIFIED in the informative direction; the load-bearing
   head's retention rises with dose (dose-defying concentration), population selection saturates from
   lambda=1, and dominance over the ban breaks on cost at lambda=10.**
+
+## Five-seed campaign and mechanism discrimination (W3; frozen before each batch)
+
+- **P-M31F** (selection at n=5, lambda=1): population selection (a) and dominance over the ban on
+  cost and speed (b). **Outcome: both CONFIRMED in 5/5 seeds; the per-head estimand (c) came out
+  5/5 working heads converted, exact binomial 95% CI [0.478, 1.000].**
+- **P-M31R** (reg-only, no plant): the frozen prediction held that the working head would retain
+  phase without a plant. **Outcome: FALSIFIED in both seeds (discriminating): the working head
+  converts and the circuit reroutes to fresh seats, so retention requires the plant.**
+- **P-M31M** (mirrored regularizer toward phase, with plant): the frozen prediction held that the
+  working head would stay cos-only (function-pinning). **Outcome: clause (a) FALSIFIED in both
+  seeds (discriminating): the planted heads are driven to rope_imag_frac 0.91-0.93 while the
+  population moves +0.026, so concentration is direction-agnostic carrier-targeting; clause (b),
+  the plant-only acceleration replicate, CONFIRMED in both seeds.**
+
+Joint reading (stated in the paper): the regularizer is a direction-agnostic implementation-
+targeting force that concentrates on load-bearing heads; the plant supplies acceleration and
+anti-reversion; retention under pressure is a plant-conditional interaction, not function-pinning.

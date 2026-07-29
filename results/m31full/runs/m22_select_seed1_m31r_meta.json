@@ -1,0 +1,19 @@
+{
+ "arm": "select",
+ "seed": 1,
+ "tokens": 4000000000,
+ "lam": 3.0,
+ "bias_B": 8.0,
+ "bias_only": true,
+ "plant": {},
+ "no_plant": true,
+ "reg_direction": "imag",
+ "seeded": [
+  "L1H9",
+  "L1H7",
+  "L1H1",
+  "L3H7",
+  "L3H0",
+  "L3H1"
+ ]
+}

@@ -1,0 +1,16 @@
+{
+ "arm": "constraint",
+ "seed": 0,
+ "tokens": 4000000000,
+ "plant": {},
+ "seeded": [
+  "L1H0",
+  "L1H1",
+  "L2H0",
+  "L2H1",
+  "L3H0",
+  "L3H1",
+  "L4H0",
+  "L4H1"
+ ]
+}
