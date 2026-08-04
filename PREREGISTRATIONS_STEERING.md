@@ -78,3 +78,18 @@ P1-paper pre-registrations (dynamics Q1–Q3; intervention P1–P4) are in `INTE
 Joint reading (stated in the paper): the regularizer is a direction-agnostic implementation-
 targeting force that concentrates on load-bearing heads; the plant supplies acceleration and
 anti-reversion; retention under pressure is a plant-conditional interaction, not function-pinning.
+
+## Second family and objective parameterization (frozen at commits 4e22142 / d087068)
+
+- **P-P3L** (LLaMA-class 160M, three arms, two seeds): clause (a), population selection with in-box
+  baselines. **Outcome: CONFIRMED both seeds** (pop rif 0.0170/0.0170 vs free 0.5005/0.5003, seeded
+  6/6). Clause (b) bundled cost-and-speed dominance: **cost axis CONFIRMED (2.9x cheaper than the
+  ban); the speed-vs-free clause is FALSIFIED** (select +12% vs free where the origin family showed
+  25-31% speedups) and is reported at full prominence. Estimands: per-head selection succeeds
+  (seeded argmax 2/2, rif 0.017/0.021); retention relocates to live induction heads; the ban kills
+  31/35 of 144 heads, the select arm none.
+- **P-LIC** (live-ratio objective lambda-curve, four cells): the frozen bar (working-head rif < 0.10
+  in all cells) **CONFIRMED: 0.015/0.021 at lambda=3 and 0.007/0.007 at lambda=10**, monotone dose
+  response, lower cost than the detached objective, full plant acceleration retained. The
+  dose-defying concentration of the detached family does not occur under the live objective; the
+  strategy-side extrapolation that retention would survive the live objective was falsified.

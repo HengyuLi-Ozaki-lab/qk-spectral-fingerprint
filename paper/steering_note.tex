@@ -29,22 +29,22 @@
 
 \begin{abstract}
 Which algorithms a transformer acquires during training, and whether that choice can be steered, are central
-questions in mechanistic interpretability and for the prospect of models that are auditable by construction.
+questions for mechanistic interpretability and for auditable-by-construction models.
 A companion study of the QK operator's spectrum established that the positional encoding scheme sets a default spectral algebra for the
-attention heads implementing induction, and that this default is a preference rather than a constraint: banning a
-spectral channel is rerouted around at a measurable formation cost. We ask the constructive converse: whether
+attention heads implementing induction, and that it is a preference, not a constraint: bans are
+rerouted around at a measurable formation cost. We ask the constructive converse: whether
 \emph{ban-free assistance}, either an initialization toward a chosen implementation or a weak population-level
-regularizer, can accelerate or select what forms. In pre-registered two-layer experiments the two levers separate
-cleanly: solution-specific initialization accelerates formation ($-28\%$/$-37\%$ across positional schemes,
-zero capability cost) but does not select the implementation; the weak regularizer selects ($5/5$ vs.\
-$0/5$ runs) but does not accelerate. The implementation flip that a ban forces at $2.9\times$ formation cost,
-assistance obtains at $1.3\times$. Both levers survive real-corpus pretraining at 160M parameters: a functional plant
-accelerates induction formation by $27$--$31\%$ at capability parity, and weak assistance selects as deeply as a
-ban while remaining cheaper and faster within a dose window ($\lambda\le3$). A dose curve exposes the mechanism's
-limit, which we name \emph{dose-defying concentration}: population pressure converts the population at the
-smallest dose, yet concentrates the default algebra into the load-bearing head. Steering learned circuits is thus
-cheaper than banning them, bounded by an active retention effect. Because the steered implementation evades
-weight-space fingerprints while remaining visible to propagator diagnostics, such interventions also remain
+regularizer, can accelerate or select what forms. In pre-registered two-layer experiments the levers separate
+cleanly: solution-specific initialization accelerates formation ($-28\%$/$-37\%$, zero
+capability cost) but does not select the implementation; the weak regularizer selects ($5/5$ vs.\
+$0/5$ runs) but does not accelerate. Both levers survive real-corpus pretraining at 160M parameters: a functional plant
+accelerates induction formation by $27$--$31\%$ at capability parity, and weak assistance converts the
+population and the load-bearing head in five of five seeds, cheaper and faster than the ban. In a
+second architecture family (LLaMA-class), selection and its dominance over the ban transfer, while the
+acceleration reverses to a small delay. A dose curve qualifies the mechanism: higher doses awaken a plant-conditional retention, which we name \emph{dose-defying
+concentration}, that loads the regularizer's target, in either direction, onto the planted heads; the effect is specific to
+detached-denominator objectives and disappears under a live-ratio objective, at lower cost. Steering learned circuits is thus cheaper than banning them. Because the steered implementation
+evades weight-space fingerprints while remaining visible to propagator diagnostics, such interventions remain
 auditable.
 \end{abstract}
 
@@ -89,13 +89,17 @@ and regularization fields do neither.
 \item \textbf{Steering is cheaper than banning} (\S\ref{sec:results}, \S\ref{sec:scale}): assistance reaches the
 same implementation a ban forces, at a fraction of the cost, both at toy scale and at 160M.
 \item \textbf{Both levers transfer to real-corpus pretraining} (\S\ref{sec:scale}): at 160M/4B, a functional plant
-accelerates induction formation by $27$--$31\%$ at capability parity, and weak assistance selects the non-default
-implementation as deeply as a ban while being cheaper and faster.
-\item \textbf{A dose curve, and a mechanistic limit we name \emph{dose-defying concentration}}
-(\S\ref{sec:scale}): population-mean pressure converts the population at the smallest dose, but the head that
-carries the function retains more default algebra as pressure grows. Per-head control is therefore a
-plant-side lever, not a penalty-side one. This turns the ``suppress-generic / retain-functional'' law of the
-QK-fingerprint and propagator papers from an observation into a dose-resolved, interventional result.
+accelerates induction formation by $27$--$31\%$ at capability parity, and weak assistance converts the
+population and the load-bearing head in five of five seeds, cheaper and faster than the ban on every seed. In a
+second architecture family (LLaMA-class), selection and both dominance axes transfer while the acceleration does
+not.
+\item \textbf{A dose curve, and a plant-conditional effect we name \emph{dose-defying concentration}}
+(\S\ref{sec:scale}): the lowest dose converts everything, including the load-bearing head; higher doses leave the
+population unchanged but awaken a retention effect that loads the regularizer's target, in either direction it
+points, onto the planted heads. The effect is a property of the detached-denominator objective family: a
+live-ratio objective converts the working head at every dose, at lower cost. Within that family per-head control
+is a plant-side lever, not a penalty-side one, and the ``suppress-generic / retain-functional'' law of the
+QK-fingerprint and propagator papers gains a dose-resolved, interventional counterpart.
 \end{enumerate}
 
 \section{Related work}
@@ -308,8 +312,17 @@ moves by only $+0.026$: the concentration is direction-agnostic, loading the reg
 load-bearing heads roughly fifteen times more strongly than onto the population, whichever way it points. The
 plant, for its part, supplies acceleration and protection against reversion; plant-only runs accelerate but drift
 back to the default. Retention under pressure is therefore a plant-conditional, dose-dependent interaction rather
-than a defense mounted by the function itself, and the lever for per-head control remains plant-side, not
-$\lambda$-side.
+than a defense mounted by the function itself. It is also specific to the penalty's parameterization. The arms
+above use the detached-denominator objective of \S\ref{sec:method}; replacing it with a live-ratio objective
+converts the working head at every dose we tested (\rif\ $0.015$/$0.021$ at $\lambda{=}3$ and $0.007$/$0.007$ at
+$\lambda{=}10$, against $0.195$/$0.012$ and $0.326$/$0.244$ for the detached objective in the same cells), with a
+normal monotone dose response, lower cost ($+0.021$ at $\lambda{=}10$ against the detached $+0.055$/$+0.064$),
+and the plant's full acceleration retained ($T_{\mathrm{ind}}$ $0.267$B in every cell). One further reading
+protects against a misstatement: the retaining heads under the detached objective are not holding the penalized
+quantity. They satisfy the penalized functional (share ${\approx}10^{-4}$) while the kernel functional still
+reads them as phase-carrying; the two implementation readouts dissociate at the retention endpoint. Within the
+detached family the lever for per-head control is plant-side, not $\lambda$-side; changing the objective family
+removes the limit altogether.
 
 \begin{figure}[t]\centering
 \includegraphics[width=\linewidth]{m31_lambda_curve.pdf}
@@ -337,6 +350,24 @@ extracts a $+0.41$ shift in \rif\ and bills $+0.41$ nats. The two regimes also d
 accumulates cost monotonically, whereas friction without extraction appears as an early, decaying transient. A
 companion analysis in preparation develops this cost accounting and the localization experiments in full.
 
+\textbf{A second architecture family.} We repeated the three-arm contrast (free, select $\lambda{=}1$, ban
+$\lambda{=}10$; two seeds each, in-box baselines) on a LLaMA-class 160M model: separate query and key
+projections, RMSNorm, SwiGLU, and full-dimension rotary embeddings. Selection and its dominance over the ban
+transfer intact. The population converts as deeply as in the origin family (population-median \rif\
+$0.0170$/$0.0170$ against the in-box free arm's $0.5005$/$0.5003$, with all six seeded heads cos-only in both
+seeds), at $2.9\times$ lower cost than the ban ($+0.036$/$+0.035$ versus $+0.104$/$+0.096$ nats), $37\%$ faster
+than the ban ($T_{\mathrm{ind}}$ $0.460$B versus $0.726$B), and without the ban's collateral damage: the ban
+kills $31$ and $35$ of $144$ heads (query norms collapse to the uniform-attention floor), the select arm none.
+What does not transfer is the acceleration against free: the frozen speed clause is falsified, with the select
+median at $0.460$B against free's $0.412$B, a $+12\%$ delay ($+18\%$/$+6\%$ per seed) where the origin family
+showed $25$--$31\%$ speedups. This family also returns two findings the origin family could not provide. First,
+per-head selection succeeds here: the working prev head is a seeded slot in both seeds and is fully converted
+(\rif\ $0.017$/$0.021$), which no detached dose in $[1,10]$ achieved in the origin family. Second, retention does
+not disappear; it relocates. The highest-\rif\ heads in the select arms are live induction heads ($0.344$ with an
+induction score of $0.85$; $0.338$ with $0.90$), while under the ban the heads that would retain are dead: of the
+ban arms' \rif${\ge}0.25$ heads, none is alive or functional, whereas the select arms hold exactly one per seed,
+alive and functional. Retention requires an unconstrained place to live and a dose that leaves the head alive.
+
 \begin{table}[t]\centering\small\setlength{\tabcolsep}{5pt}
 \begin{tabular}{l l c c l}\toprule
 160M arm & levers & $T_{\mathrm{ind}}$ (median) & working-head \rif & outcome\\\midrule
@@ -360,9 +391,9 @@ masking them collapses induction ($0.013$/$0.014$), whereas the same mask on fre
 ($0.918$/$0.913$). Assistance buys speed and selection at the price of a more fragile supply chain.
 
 \textbf{Scope.} Selection at $n{=}5$ seeds with in-box free and ban baselines; acceleration at $n{=}2$ with a
-two-seed plant-only replicate; the dose grid, reg-only, and mirrored arms at $n{=}2$ per cell; a single plant
-design; one model scale (160M/4B, through the formation window); two rotary geometries; all contrasts on the same
-code path.
+two-seed plant-only replicate; the dose grid, reg-only, mirrored, and live-objective arms at $n{=}2$ per cell; a
+second architecture family with three arms at $n{=}2$; a single plant design; one scale (160M/4B, through the
+formation window); all contrasts on the same code path.
 
 \section{Discussion}
 \textbf{The constructive half of a three-way distinction.} The QK-fingerprint paper separates three things the field
@@ -409,9 +440,11 @@ while the carrier persists.
 \textbf{Limitations.} At toy scale, $n{=}5$ seeds, 2-layer attention-only models, one synthetic task, and an
 eval grid that quantizes APE formation. At 160M, $n{=}2$ seeds per cell, a single plant design, one model scale
 and token budget (4B, through the formation window), and two rotary geometries; the dose curve is three points.
-Every contrast is in-box on the same code path, which controls implementation drift but not the choice of task or
-architecture family. We have not tested a scale above 160M, a non-rotary positional scheme at scale, or a plant
-that targets the penalty per head rather than population-wide. The last of these is the design change our own dose
+Every contrast is in-box on the same code path, which controls implementation drift but not the choice of task.
+The second architecture family tests generality in one direction and bounds it in another: selection, its
+dominance over the ban, and per-head conversion transfer to the LLaMA-class model, while the acceleration against
+free does not. We have not tested a scale above 160M, a non-rotary positional scheme at scale, or a plant that
+targets the penalty per head rather than population-wide; the last of these is the design change our own dose
 curve recommends, and we have not run it.
 
 \section{Conclusion}
@@ -455,11 +488,13 @@ existence proof rather than a recipe. We release the harness, seeds, and per-run
 and the free arms reproduce it bit-exactly; the 160M experiments use the same code path
 (\texttt{src/h2\_m22\_*.py}, \texttt{src/h2\_m31.py}). Every prediction was frozen in the released plan documents
 before its runs; the file labels there are P-A1 to P-A3 for the hinge and selection experiments, P-M21a to P-M21d
-and P-A5 for the dissection grid, P-E2 for the reserve check, and P-M22-redo, P-M31, P-M31b, P-M31$\lambda$, P-M31F, P-M31R, and P-M31M
-for the 160M transfer, selection, dose-curve, and mechanism-discrimination experiments. The falsified predictions (algebra-class
+and P-A5 for the dissection grid, P-E2 for the reserve check; P-M22-redo, P-M31, P-M31b, P-M31$\lambda$, P-M31F, P-M31R, and P-M31M for the 160M
+transfer, selection, dose-curve, and mechanism-discrimination experiments; and P-P3L (frozen at repository commit
+\texttt{4e22142}) and P-LIC (frozen at \texttt{d087068}) for the second-family and objective-parameterization
+experiments. The falsified predictions (algebra-class
 initialization, P-A1; the $\lambda$ non-monotonicity flag, P-M21c; the per-head conversion threshold within
-P-M31; the $\lambda^{\ast}$ clause of P-M31$\lambda$; and the retention clauses P-M31R-a and P-M31M-a) are
-reported as findings. Per-run tables are under
+P-M31; the $\lambda^{\ast}$ clause of P-M31$\lambda$; the retention clauses P-M31R-a and P-M31M-a; and the
+second-family speed clause of P-P3L) are reported as findings. Per-run tables are under
 \texttt{results/h1/} and \texttt{results/h2/}. Code and data:
 \url{https://github.com/HengyuLi-Ozaki-lab/qk-spectral-fingerprint}.
 
