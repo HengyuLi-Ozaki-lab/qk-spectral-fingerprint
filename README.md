@@ -1,14 +1,16 @@
-# Fingerprint, Not Blueprint — code & data
+# Positional Encoding Sets the Default Spectral Structure of Attention Circuits: code and data
 
 Reproducibility bundle for:
 
-- **Fingerprint, Not Blueprint: How Positional Schemes Set the Default Spectral Algebra of Attention**
+- **Positional Encoding Sets the Default Spectral Structure of Attention Circuits**
+  ([arXiv:2607.06621](https://arxiv.org/abs/2607.06621); version 1 was posted as "Fingerprint, Not
+  Blueprint: How Positional Schemes Set the Default Spectral Algebra of Attention")
   (`paper/qk_spectral.tex|.pdf`)
-- **Steering Is Cheaper Than Banning: Assistance-Based Selection of Attention's Spectral Solutions**
-  (`paper/steering_note.tex|.pdf`, companion note)
+- **Steering the Spectral Algebra of Attention Circuits in Transformer Pretraining**
+  (`paper/steering_note.tex|.pdf`, companion paper)
 
-Li Hengyu, Institute for Solid State Physics, The University of Tokyo
-(lihengyu@issp.u-tokyo.ac.jp)
+Li Hengyu and Kazuyoshi Yoshimi, Institute for Solid State Physics, The University of Tokyo
+(corresponding author: lihengyu@issp.u-tokyo.ac.jp)
 
 ## What is in here
 
